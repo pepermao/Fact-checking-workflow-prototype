@@ -12,7 +12,6 @@ export const usePersistedMachine = (StateMachine) => {
     }
 
     return useMachine(StateMachine, {
-        state: previousState,
-        immediate: false,
+        state: previousState        
     });
 }

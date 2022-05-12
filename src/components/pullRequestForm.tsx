@@ -4,17 +4,21 @@ import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import "../styles/form.css";
 
-const OpenPullForm = ({send}) => {
+interface IFormInputs {
+    prTitle: string;
+}
+
+const OpenPullForm = ({ send }) => {
     const schema = yup.object({
         prTitle: yup.string().required()
     })
 
 
-    const { register, handleSubmit, formState:{ errors } } = useForm({
+    const { register, handleSubmit, formState:{ errors } } = useForm<IFormInputs>({
         resolver: yupResolver(schema)
     });
     
-    const onSubmit = (data) => {
+    const onSubmit = (data: IFormInputs) => {
         send("OPENPR", { prTitle: data.prTitle })
     };
     

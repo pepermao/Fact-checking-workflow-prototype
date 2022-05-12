@@ -4,16 +4,20 @@ import {yupResolver} from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import "../styles/form.css";
 
+interface IFormInput {
+    IssueName: string;
+}
+
 const CreateForm = ({send}) => {
     const schema = yup.object({
         IssueName: yup.string().required(),
     });
 
-    const { register, handleSubmit, formState:{ errors }} = useForm({
+    const { register, handleSubmit, formState:{ errors } } = useForm<IFormInput>({
         resolver: yupResolver(schema)
     });
 
-    const onSubmit = (data) => {
+    const onSubmit = (data: IFormInput) => {
         send('CREATEISSUE', {issueName: data.IssueName})
     };
 
