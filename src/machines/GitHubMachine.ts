@@ -14,16 +14,18 @@ type CreateEvent = { type: 'CREATEISSUE', issueName: string }
 type AssignEvent = { type: 'ASSIGNDEV', devName: string}
 type OpenPrEvent = { type: 'OPENPR', prTitle: string  }
 type ReqChangeEvent = { type: 'REQUESTCHANGE', changeRequested: string}
-type CommitEvent = { type: 'NEWCOMMIT', commitsCount: number}
+type CommitEvent = { type: 'NEWCOMMIT'}
 type ApproveEvent = { type: 'APPROVEPR'}
+type ResetEvent= { type: 'RESET'}
 
-type GitHubMachineEvents = 
+type GitHubMachineEvents =
     | CreateEvent
     | AssignEvent
     | OpenPrEvent
     | ReqChangeEvent
     | CommitEvent
     | ApproveEvent
+    | ResetEvent
 
 type GitHubMachineState =
     | { value: 'idle', context: GitHubMachineContext}
@@ -43,13 +45,11 @@ const assignedDev = assign<GitHubMachineContext, AssignEvent>({
     devName: (context, event) => event.devName
 })
 
-
-
 const openPr = assign<GitHubMachineContext, OpenPrEvent>({
     prTitle: (context, event) => event.prTitle
 })
 
-const newCommit = assign<GitHubMachineContext, CommitEvent>({
+const newCommit = assign<GitHubMachineContext, any>({
     commitsCount: (context) => context.commitsCount + 1
 })
 
@@ -57,34 +57,42 @@ const requestedChanges = assign<GitHubMachineContext, ReqChangeEvent>({
     changeRequested: (context, event) => event.changeRequested
 })
 
-const aprrovePR = assign<GitHubMachineContext, ApproveEvent>({
-    merged: (context) => true
+const approvePR = assign<GitHubMachineContext, ApproveEvent>({
+    merged: () => true
+})
+
+const reset = assign<GitHubMachineContext, ResetEvent>({
+    issueName: () => '',
+    devName: () => '',
+    prTitle: () => '',
+    commitsCount: () => 0,
+    changeRequested: () => '',
+    merged: () => false
 })
 
 
+const initialContext: GitHubMachineContext = {issueName: '',
+devName:'',
+prTitle:'',
+commitsCount: 0,
+changeRequested:'',
+merged: false}
+
 export const GithubMachine = createMachine<GitHubMachineContext, GitHubMachineEvents, GitHubMachineState>({
     initial: "idle",
-    context: {
-        issueName: '',
-        devName:'',
-        prTitle:'',
-        commitsCount: 0,
-        changeRequested:'',
-        merged: false
-    } as GitHubMachineContext,
-
+    context: initialContext,
     states: {
         idle: {
             on: {
-                CREATEISSUE: { 
+                CREATEISSUE: {
                     target: "issueCreated",
                     actions: [createIssue]
                 },
-            },  
+            },
         },
         issueCreated: {
             on: {
-                ASSIGNDEV: { 
+                ASSIGNDEV: {
                     target: "assigned",
                     actions: [assignedDev]
                 }
@@ -97,7 +105,7 @@ export const GithubMachine = createMachine<GitHubMachineContext, GitHubMachineEv
                     actions: [openPr, newCommit],
                 }
             }
-        },  
+        },
         inReview:{
             on:{
                 REQUESTCHANGE: {
@@ -106,7 +114,7 @@ export const GithubMachine = createMachine<GitHubMachineContext, GitHubMachineEv
                 },
                 APPROVEPR: {
                     target: 'closed',
-                    actions: [aprrovePR]
+                    actions: [approvePR]
                 }
             }
         },
@@ -118,13 +126,13 @@ export const GithubMachine = createMachine<GitHubMachineContext, GitHubMachineEv
                 }
             }
         },
-        closed:{}
+        closed:{
+            on: {
+                RESET: {
+                    target: "idle",
+                    actions: [reset]
+                }
+            }
+        }
     },
-    actions: {
-        createIssue,
-        assignedDev,
-        openPr,
-        newCommit,
-        requestedChanges
-    }
 })
