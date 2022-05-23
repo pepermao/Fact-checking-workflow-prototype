@@ -26,7 +26,7 @@ const ReviewForm = ({ send }) => {
   };
 
   const onClick = () => {
-    console.log("mergeado");
+    console.log("teste");
   };
 
   return (
