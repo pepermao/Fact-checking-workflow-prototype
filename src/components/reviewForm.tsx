@@ -26,7 +26,7 @@ const ReviewForm = ({ send }) => {
   };
 
   const onClick = () => {
-    console.log("teste");
+    console.log("Pepe ladrao roubou meu coracao");
   };
 
   return (
