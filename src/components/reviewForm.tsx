@@ -1,34 +1,31 @@
-import React from "react"
-import { useForm } from "react-hook-form"
-import "../styles/form.css"
+import { useCallback } from 'react';
+import type { RemirrorJSON } from 'remirror';
+import { OnChangeJSON } from '@remirror/react';
+import { WysiwygEditor } from '@remirror/react-editors/wysiwyg';
+import { YjsExtension } from 'remirror/extensions';
+import Colaborating from './Colaborating';
 
-interface IFormInput {
-  changeRequested: string
+const STORAGE_KEY = 'remirror-editor-content';
+
+const ReviewForm: React.FC = () => {
+  const handleEditorChange = useCallback((json: RemirrorJSON) => {
+    // Store the JSON in localstorage
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(json));
+  }, []);
+
+  return <MyEditor onChange={handleEditorChange} />;
+};
+
+interface MyEditorProps {
+  onChange: (json: RemirrorJSON) => void;
 }
 
-const ReviewForm = ({ send }) => {
-  const { register, handleSubmit } = useForm<IFormInput>()
-
-  const onSubmit = (data: IFormInput) => {
-    console.log(data)
-    send("REQUESTCHANGE", { changeRequested: data.changeRequested })
-  }
-
-  const onClick = () => {
-    send("APPROVEPR")
-  }
-
+const MyEditor: React.FC<MyEditorProps> = ({ onChange }) => {
   return (
-    <>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <label>Request Changes</label>
-        <input {...register("changeRequested")} />
-        <input type="submit" />
-        <label>or approve the pull request</label>
-      </form>
-      <button onClick={onClick}>Approve</button>
-    </>
-  )
-}
+    <div style={{ padding: 16 }}>
+      <Colaborating />
+    </div>
+  );
+};
 
-export default ReviewForm
+export default ReviewForm;
